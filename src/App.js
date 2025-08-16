@@ -60,7 +60,7 @@ const fetchAllPlaces = async () => {
   const handleSubmitPerson = async () => {
   try {
     const url = `http://localhost:8080/osoba/${personAction}`;
-    const res = await axios.post(url, personData); // personData je JSON
+    const res = await axios.post(url, personData);
     console.log("Response:", res.data);
   } catch (err) {
     console.error(err);
@@ -108,7 +108,9 @@ const validatePlace = (data, placeAction) => {
       errors.postalCode = "Poštanski broj mora biti između 11000 i 39660.";
     }
 
-    if (data.population !== "" && data.population !== null) {
+    if (data.population === "" || data.population === null) {
+      errors.population = "Populacija mora biti uneta.";
+    } else {
       const population = parseInt(data.population, 10);
       if (isNaN(population)) {
         errors.population = "Populacija mora biti broj.";
@@ -117,7 +119,6 @@ const validatePlace = (data, placeAction) => {
       }
     }
   }
-
   return errors;
 };
 
@@ -136,6 +137,7 @@ const validatePlace = (data, placeAction) => {
         postalCode: parseInt(placeData.postalCode, 10),
         population: placeData.population ? parseInt(placeData.population, 10) : null
       });
+      setErrors({});
       console.log("Response:", res.data);
     } catch (err) {
       console.error(err);
@@ -151,18 +153,15 @@ const validatePlace = (data, placeAction) => {
 
     console.log("Brisanje mesta:", placeData);
     try {
-    const url = "http://localhost:8080/city";
+      const postalCode = parseInt(placeData.postalCode, 10);
+      const url = `http://localhost:8080/city/${postalCode}`;
 
-    const res = await axios.put(url, {
-      ...placeData,
-      postalCode: parseInt(placeData.postalCode, 10),
-      population: placeData.population ? parseInt(placeData.population, 10) : null
-    });
-
-    console.log("Response:", res.data);
-  } catch (err) {
-    console.error(err);
-  }
+      const res = await axios.delete(url);
+      setErrors({});
+      console.log("Response:", res.data);
+    } catch (err) {
+      console.error(err);
+    }
   }; 
 
   const handleUpdatePlace = async() => {
@@ -172,7 +171,21 @@ const validatePlace = (data, placeAction) => {
       return;
     }
 
-    console.log("Izmena mesta: ", placeData)
+    console.log("Izmena mesta: ", placeData);
+    try {
+      const url = "http://localhost:8080/city";
+
+      const res = await axios.put(url, {
+        ...placeData,
+        postalCode: parseInt(placeData.postalCode, 10),
+        population: placeData.population ? parseInt(placeData.population, 10) : null
+      });
+
+      setErrors({});
+      console.log("Response:", res.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -299,7 +312,7 @@ const validatePlace = (data, placeAction) => {
             <>
               <input style={inputStyle} placeholder="Poštanski broj" value={placeData.postalCode} onChange={(e) => setPlaceData({ ...placeData, postalCode: e.target.value })} />
               {errors.postalCode && <div style={{ color: "red" }}>{errors.postalCode}</div>}
-              <input style={inputStyle}  placeholder="Populacija rođenja" value={placeData.population} onChange={(e) => setPlaceData({ ...placeData, population: e.target.value })} />
+              <input style={inputStyle}  placeholder="Populacija u mestu" value={placeData.population} onChange={(e) => setPlaceData({ ...placeData, population: e.target.value })} />
             {errors.population && (
               <div style={{ color: "red" }}>{errors.population}</div>
         )}
