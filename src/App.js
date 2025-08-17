@@ -377,8 +377,27 @@ function App() {
   return (
     <div style={{ padding: "40px" }}>
       <div>
-        <button style={buttonStyle} onClick={() => setActiveTab("person")}>Osoba</button>
-        <button style={buttonStyle} onClick={() => setActiveTab("place")}>Mesto</button>
+        <button
+          style={{
+            ...buttonStyle,
+            backgroundColor: activeTab === "person" ? "black" : "white",
+            color: activeTab === "person" ? "white" : "black",
+          }}
+          onClick={() => setActiveTab("person")}
+        >
+          Osoba
+        </button>
+
+        <button
+          style={{
+            ...buttonStyle,
+            backgroundColor: activeTab === "place" ? "black" : "white",
+            color: activeTab === "place" ? "white" : "black",
+          }}
+          onClick={() => setActiveTab("place")}
+        >
+          Mesto
+        </button>
       </div>
 
       <hr />
