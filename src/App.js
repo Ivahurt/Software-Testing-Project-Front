@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import axios from "axios";
 
 function App() {
@@ -33,6 +33,17 @@ function App() {
   const selectStyle = { ...inputStyle, fontWeight: "bold" };
   const buttonStyle = { padding: "10px 20px", fontSize: "16px", cursor: "pointer", marginTop: "10px" };
 
+  const tabContainerStyle = {
+      padding: "20px",
+      margin: "20px 0",
+      border: "1px solid #ccc",
+      borderRadius: "10px",
+      backgroundColor: "#f9f9f9",
+      fontSize: "18px",
+      fontWeight: "bold",
+      lineHeight: "2",
+    };
+
   const fetchAllPersons = async () => {
   try {
     const url = "http://localhost:8080/person/all";
@@ -56,16 +67,23 @@ const fetchAllPlaces = async () => {
     console.error(err);
   }
 };
+
+  useEffect(() => {
+    if (activeTab === "person") {
+      fetchAllPlaces();
+    }
+  }, [activeTab]);
   
   const handleSubmitPerson = async () => {
   try {
-    const url = `http://localhost:8080/osoba/${personAction}`;
+    const url = `http://localhost:8080/person`;
     const res = await axios.post(url, personData);
     console.log("Response:", res.data);
   } catch (err) {
     console.error(err);
   }
 };
+
 
 const validatePlace = (data, placeAction) => {
   console.log(data);
@@ -122,6 +140,13 @@ const validatePlace = (data, placeAction) => {
   return errors;
 };
 
+  const resetForm = () => {
+  setPlaceData({ name: "", postalCode: "", population: "" });
+  setErrors({});
+  setPlaceAction(placeAction);
+};
+
+
   const handleSubmitPlace = async () => {
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -137,12 +162,13 @@ const validatePlace = (data, placeAction) => {
         postalCode: parseInt(placeData.postalCode, 10),
         population: placeData.population ? parseInt(placeData.population, 10) : null
       });
-      setErrors({});
+      resetForm();
       console.log("Response:", res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+      } catch (err) {
+        console.log(err);
+  }
+
+};
 
   const handleDeletePlace = async () => {
     const validationErrors = validatePlace(placeData, placeAction);
@@ -157,12 +183,11 @@ const validatePlace = (data, placeAction) => {
       const url = `http://localhost:8080/city/${postalCode}`;
 
       const res = await axios.delete(url);
-      setErrors({});
+      resetForm();
       console.log("Response:", res.data);
     } catch (err) {
-      console.error(err);
-    }
-  }; 
+      console.log(err);
+    }}; 
 
   const handleUpdatePlace = async() => {
     const validationErrors = validatePlace(placeData, placeAction);
@@ -181,12 +206,11 @@ const validatePlace = (data, placeAction) => {
         population: placeData.population ? parseInt(placeData.population, 10) : null
       });
 
-      setErrors({});
+      resetForm();
       console.log("Response:", res.data);
     } catch (err) {
-      console.error(err);
-    }
-  };
+    console.log(err);
+  }};
 
   return (
     <div style={{ padding: "20px" }}>
@@ -220,8 +244,32 @@ const validatePlace = (data, placeAction) => {
               <input style={inputStyle} placeholder="Prezime" value={personData.lastName} onChange={(e) => setPersonData({ ...personData, lastName: e.target.value })} />
               <input style={inputStyle} type="date" placeholder="Datum rođenja" value={personData.dateOfBirth} onChange={(e) => setPersonData({ ...personData, dateOfBirth: e.target.value })} />
               <input style={inputStyle} placeholder="JMBG" value={personData.uniqueIdentificationNumber} onChange={(e) => setPersonData({ ...personData, uniqueIdentificationNumber: e.target.value })} />
-              <input style={inputStyle} placeholder="Mesto rođenja" value={personData.cityBirthName} onChange={(e) => setPersonData({ ...personData, cityBirthName: e.target.value })} />
-              <input style={inputStyle} placeholder="Mesto u kojem živi" value={personData.cityResidenceName} onChange={(e) => setPersonData({ ...personData, cityResidenceName: e.target.value })} />
+              
+            <select 
+                style={selectStyle} 
+                value={personData.cityBirthName} 
+                onChange={(e) => setPersonData({ ...personData, cityBirthName: e.target.value })}
+              >
+                <option value="">Izaberite mesto rođenja</option>
+                {placeList.map((place, index) => (
+                  <option key={index} value={place.name}>
+                    {place.name}
+                  </option>
+                ))}
+              </select>
+              
+              <select 
+                style={selectStyle} 
+                value={personData.cityResidenceName} 
+                onChange={(e) => setPersonData({ ...personData, cityResidenceName: e.target.value })}
+              >
+                <option value="">Izaberite mesto u kojem živi</option>
+                {placeList.map((place, index) => (
+                  <option key={index} value={place.name}>
+                    {place.name}
+                  </option>
+                ))}
+              </select>
             </>
           )}
 
@@ -232,7 +280,18 @@ const validatePlace = (data, placeAction) => {
           {personAction === "update" && (
             <>
               <input style={inputStyle} placeholder="JMBG" value={personData.uniqueIdentificationNumber} onChange={(e) => setPersonData({ ...personData, uniqueIdentificationNumber: e.target.value })} />
-              <input style={inputStyle} placeholder="Mesto u kojem živi" value={personData.cityResidenceName} onChange={(e) => setPersonData({ ...personData, cityResidenceName: e.target.value })} />
+                       <select 
+                style={selectStyle} 
+                value={personData.cityResidenceName} 
+                onChange={(e) => setPersonData({ ...personData, cityResidenceName: e.target.value })}
+              >
+                <option value="">Izaberite novo mesto u kojem živi</option>
+                {placeList.map((place, index) => (
+                  <option key={index} value={place.name}>
+                    {place.name}
+                  </option>
+                ))}
+              </select>
             </>
           )}
 
@@ -294,7 +353,7 @@ const validatePlace = (data, placeAction) => {
               {errors.name && <div style={{ color: "red" }}>{errors.name}</div>}
               <input style={inputStyle} placeholder="Poštanski broj" value={placeData.postalCode} onChange={(e) => setPlaceData({ ...placeData, postalCode: e.target.value })} />
               {errors.postalCode && <div style={{ color: "red" }}>{errors.postalCode}</div>}
-              <input style={inputStyle}  placeholder="Populacija rođenja" value={placeData.population} onChange={(e) => setPlaceData({ ...placeData, population: e.target.value })} />
+              <input style={inputStyle}  placeholder="Populacija u mestu" value={placeData.population} onChange={(e) => setPlaceData({ ...placeData, population: e.target.value })} />
             {errors.population && (
               <div style={{ color: "red" }}>{errors.population}</div>
         )}
@@ -317,7 +376,7 @@ const validatePlace = (data, placeAction) => {
               <div style={{ color: "red" }}>{errors.population}</div>
         )}
             </>
-          )}
+          )}      
           
         <button
           onClick={
