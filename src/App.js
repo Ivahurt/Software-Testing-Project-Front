@@ -170,8 +170,22 @@ function App() {
       return;
     }
 
-    resetForm();
     console.log('Slanje osobe: ', personData);
+    try {
+      const url = "http://localhost:8080/person";
+      const res = await axios.post(url, {
+        firstName: personData.firstName,
+        lastName: personData.lastName,
+        dateOfBirth: personData.dateOfBirth,
+        uniqueIdentificationNumber: parseInt(personData.uniqueIdentificationNumber, 10),
+        cityBirthName: personData.cityBirthName,
+        cityResidenceName: personData.cityResidenceName
+      });
+      resetForm();
+      console.log("Response:", res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleDeletePerson = async () => {
