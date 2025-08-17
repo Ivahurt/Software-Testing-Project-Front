@@ -31,7 +31,17 @@ function App() {
 
   const inputStyle = { display: "block", marginBottom: "10px", padding: "10px", fontSize: "16px", width: "300px" };
   const selectStyle = { ...inputStyle, fontWeight: "bold" };
-  const buttonStyle = { padding: "10px 20px", fontSize: "16px", cursor: "pointer", marginTop: "10px" };
+  const buttonStyle = {
+    padding: "10px 20px",
+    fontSize: "14px",
+    cursor: "pointer",
+    marginTop: "10px",
+    marginRight: "10px",
+    fontWeight: "bold",
+    borderRadius: "8px",
+    border: "1px solid #ccc"
+  };
+
 
   const tabContainerStyle = {
     padding: "20px",
@@ -76,68 +86,136 @@ function App() {
 
 
 
-  const validatePerson = (data) => {
+  const validatePerson = (data, personAction) => {
     const errors = {};
 
-    if (!data.firstName || typeof data.firstName !== "string") {
-      errors.firstName = "Ime mora biti uneto.";
-    } else if (data.firstName.length < 2 || data.firstName.length > 30) {
-      errors.firstName = "Ime mora biti između 2 i 30 karaktera.";
-    } else if (!/^[A-ZČĆŠŽĐ][a-zčćšžđ]{1,}$/.test(data.firstName)) {
-      errors.firstName = "Ime mora početi velikim slovom i sadržati samo mala slova nakon toga.";
-    }
-
-    if (!data.lastName || typeof data.lastName !== "string") {
-      errors.lastName = "Prezime mora biti uneto.";
-    } else if (data.lastName.length < 2 || data.lastName.length > 30) {
-      errors.lastName = "Prezime mora biti između 2 i 30 karaktera.";
-    } else if (!/^[A-ZČĆŠŽĐ][a-zčćšžđ]{1,}$/.test(data.lastName)) {
-      errors.lastName = "Prezime mora početi velikim slovom i sadržati samo mala slova nakon toga.";
-    }
-
-    if (!data.dateOfBirth) {
-      errors.dateOfBirth = "Datum rođenja mora biti unet.";
-    } else {
-      const today = new Date();
-      const enteredDate = new Date(data.dateOfBirth);
-
-      today.setHours(0, 0, 0, 0);
-
-      if (isNaN(enteredDate.getTime())) {
-        errors.dateOfBirth = "Neispravan format datuma.";
-      } else if (enteredDate > today) {
-        errors.dateOfBirth = "Datum rođenja ne može biti u budućnosti.";
+    if (personAction === 'add') {
+      if (!data.firstName || typeof data.firstName !== "string") {
+        errors.firstName = "Ime mora biti uneto.";
+      } else if (data.firstName.length < 2 || data.firstName.length > 30) {
+        errors.firstName = "Ime mora biti između 2 i 30 karaktera.";
+      } else if (!/^[A-ZČĆŠŽĐ][a-zčćšžđ]{1,}$/.test(data.firstName)) {
+        errors.firstName = "Ime mora početi velikim slovom i sadržati samo mala slova nakon toga.";
       }
-    }
 
-    if (!data.uniqueIdentificationNumber) {
-      errors.uniqueIdentificationNumber = "JMBG mora biti unet.";
-    } else if (!/^[0-9]+$/.test(data.uniqueIdentificationNumber)) {
-      errors.uniqueIdentificationNumber = "JMBG može sadržati samo brojeve.";
-    } else if (data.uniqueIdentificationNumber.length !== 13) {
-      errors.uniqueIdentificationNumber = "JMBG mora imati tačno 13 cifara.";
-    }
+      if (!data.lastName || typeof data.lastName !== "string") {
+        errors.lastName = "Prezime mora biti uneto.";
+      } else if (data.lastName.length < 2 || data.lastName.length > 30) {
+        errors.lastName = "Prezime mora biti između 2 i 30 karaktera.";
+      } else if (!/^[A-ZČĆŠŽĐ][a-zčćšžđ]{1,}$/.test(data.lastName)) {
+        errors.lastName = "Prezime mora početi velikim slovom i sadržati samo mala slova nakon toga.";
+      }
 
-    if (!data.cityBirthName || data.cityBirthName.trim() === "") {
-      errors.cityBirthName = "Morate izabrati mesto rođenja.";
-    }
+      if (!data.dateOfBirth) {
+        errors.dateOfBirth = "Datum rođenja mora biti unet.";
+      } else {
+        const today = new Date();
+        const enteredDate = new Date(data.dateOfBirth);
 
-    if (!data.cityResidenceName || data.cityResidenceName.trim() === "") {
-      errors.cityResidenceName = "Morate izabrati mesto prebivališta.";
+        today.setHours(0, 0, 0, 0);
+
+        if (isNaN(enteredDate.getTime())) {
+          errors.dateOfBirth = "Neispravan format datuma.";
+        } else if (enteredDate > today) {
+          errors.dateOfBirth = "Datum rođenja ne može biti u budućnosti.";
+        }
+      }
+
+      if (!data.uniqueIdentificationNumber) {
+        errors.uniqueIdentificationNumber = "JMBG mora biti unet.";
+      } else if (!/^[0-9]+$/.test(data.uniqueIdentificationNumber)) {
+        errors.uniqueIdentificationNumber = "JMBG može sadržati samo brojeve.";
+      } else if (data.uniqueIdentificationNumber.length !== 13) {
+        errors.uniqueIdentificationNumber = "JMBG mora imati tačno 13 cifara.";
+      }
+
+      if (!data.cityBirthName || data.cityBirthName.trim() === "") {
+        errors.cityBirthName = "Morate izabrati mesto rođenja.";
+      }
+
+      if (!data.cityResidenceName || data.cityResidenceName.trim() === "") {
+        errors.cityResidenceName = "Morate izabrati mesto prebivališta.";
+      }
+    } else if (personAction === 'delete') {
+      if (!data.uniqueIdentificationNumber) {
+        errors.uniqueIdentificationNumber = "JMBG mora biti unet.";
+      } else if (!/^[0-9]+$/.test(data.uniqueIdentificationNumber)) {
+        errors.uniqueIdentificationNumber = "JMBG može sadržati samo brojeve.";
+      } else if (data.uniqueIdentificationNumber.length !== 13) {
+        errors.uniqueIdentificationNumber = "JMBG mora imati tačno 13 cifara.";
+      }
+    } else if (personAction === 'update') {
+
+      if (!data.uniqueIdentificationNumber) {
+        errors.uniqueIdentificationNumber = "JMBG mora biti unet.";
+      } else if (!/^[0-9]+$/.test(data.uniqueIdentificationNumber)) {
+        errors.uniqueIdentificationNumber = "JMBG može sadržati samo brojeve.";
+      } else if (data.uniqueIdentificationNumber.length !== 13) {
+        errors.uniqueIdentificationNumber = "JMBG mora imati tačno 13 cifara.";
+      }
+
+      if (!data.cityResidenceName || data.cityResidenceName.trim() === "") {
+        errors.cityResidenceName = "Morate izabrati mesto prebivališta.";
+      }
     }
 
     return errors;
   };
 
   const handleSubmitPerson = async () => {
-    console.log('Pozvana fja za dodavanje nove osobe')
-    const validationErrors = validatePerson(personData);
+    console.log("Fja dodavanja osobe");
+    const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
+    resetForm();
     console.log('Slanje osobe: ', personData);
+  };
+
+  const handleDeletePerson = async () => {
+    console.log("Fja brisanja osobe");
+    const validationErrors = validatePerson(personData, personAction);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    console.log('Brisanje osobe: ', personData);
+    try {
+      const uniqueId = parseInt(personData.uniqueIdentificationNumber, 10);
+      const url = `http://localhost:8080/person/${uniqueId}`;
+
+      const res = await axios.delete(url);
+      resetForm();
+      console.log("Response:", res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleUpdatePerson = async () => {
+    const validationErrors = validatePerson(personData, personAction);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    console.log('Ažuriranje osobe: ', personData)
+    try {
+      const url = "http://localhost:8080/person";
+
+      const res = await axios.put(url, {
+        uniqueIdentificationNumber: Number(personData.uniqueIdentificationNumber),
+        cityResidenceName: personData.cityResidenceName
+      });
+
+      resetForm();
+      console.log("Response:", res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
 
@@ -193,15 +271,27 @@ function App() {
         }
       }
     }
+
     return errors;
   };
 
-  const resetForm = () => {
-    setPlaceData({ name: "", postalCode: "", population: "" });
-    setErrors({});
-    setPlaceAction(placeAction);
-  };
 
+  const resetForm = () => {
+    setPersonData({
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      uniqueIdentificationNumber: "",
+      cityBirthName: "",
+      cityResidenceName: ""
+    });
+    setPlaceData({
+      name: "",
+      postalCode: "",
+      population: ""
+    });
+    setErrors({});
+  };
 
   const handleSubmitPlace = async () => {
     const validationErrors = validatePlace(placeData, placeAction);
@@ -271,10 +361,10 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "40px" }}>
       <div>
-        <button onClick={() => setActiveTab("person")}>Osoba</button>
-        <button onClick={() => setActiveTab("place")}>Mesto</button>
+        <button style={buttonStyle} onClick={() => setActiveTab("person")}>Osoba</button>
+        <button style={buttonStyle} nClick={() => setActiveTab("place")}>Mesto</button>
       </div>
 
       <hr />
@@ -358,6 +448,9 @@ function App() {
                   </option>
                 ))}
               </select>
+              {errors.cityBirthName && (
+                <div style={{ color: "red" }}>{errors.cityBirthName}</div>
+              )}
 
               <select
                 style={selectStyle}
@@ -371,32 +464,78 @@ function App() {
                   </option>
                 ))}
               </select>
+              {errors.cityResidenceName && (
+                <div style={{ color: "red" }}>{errors.cityResidenceName}</div>
+              )}
             </>
           )}
 
           {personAction === "delete" && (
-            <input style={inputStyle} placeholder="JMBG" value={personData.uniqueIdentificationNumber} onChange={(e) => setPersonData({ ...personData, uniqueIdentificationNumber: e.target.value })} />
+            <>
+              <input
+                style={inputStyle}
+                placeholder="JMBG"
+                value={personData.uniqueIdentificationNumber}
+                onChange={(e) =>
+                  setPersonData({
+                    ...personData,
+                    uniqueIdentificationNumber: e.target.value,
+                  })
+                }
+              />
+              {errors.uniqueIdentificationNumber && (
+                <div style={{ color: "red" }}>{errors.uniqueIdentificationNumber}</div>
+              )}
+            </>
           )}
 
           {personAction === "update" && (
             <>
-              <input style={inputStyle} placeholder="JMBG" value={personData.uniqueIdentificationNumber} onChange={(e) => setPersonData({ ...personData, uniqueIdentificationNumber: e.target.value })} />
+              <input
+                style={inputStyle}
+                placeholder="JMBG"
+                value={personData.uniqueIdentificationNumber}
+                onChange={(e) =>
+                  setPersonData({
+                    ...personData,
+                    uniqueIdentificationNumber: e.target.value,
+                  })
+                }
+              />
+              {errors.uniqueIdentificationNumber && (
+                <div style={{ color: "red" }}>{errors.uniqueIdentificationNumber}</div>
+              )}
+
               <select
                 style={selectStyle}
                 value={personData.cityResidenceName}
                 onChange={(e) => setPersonData({ ...personData, cityResidenceName: e.target.value })}
               >
-                <option value="">Izaberite novo mesto u kojem živi</option>
+                <option value="">Novo mesto prebivališta</option>
                 {placeList.map((place, index) => (
                   <option key={index} value={place.name}>
                     {place.name}
                   </option>
                 ))}
               </select>
+              {errors.cityResidenceName && (
+                <div style={{ color: "red" }}>{errors.cityResidenceName}</div>
+              )}
             </>
           )}
 
-          <button onClick={handleSubmitPerson} style={buttonStyle}>Pošalji</button>
+          <button
+            onClick={
+              personAction === "add"
+                ? handleSubmitPerson
+                : personAction === "delete"
+                  ? handleDeletePerson
+                  : handleUpdatePerson
+            }
+            style={buttonStyle}
+          >
+            Pošalji
+          </button>
 
           {/* Dugme za prikaz svih osoba */}
           <button onClick={fetchAllPersons} style={buttonStyle}>
