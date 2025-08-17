@@ -378,7 +378,7 @@ function App() {
     <div style={{ padding: "40px" }}>
       <div>
         <button style={buttonStyle} onClick={() => setActiveTab("person")}>Osoba</button>
-        <button style={buttonStyle} nClick={() => setActiveTab("place")}>Mesto</button>
+        <button style={buttonStyle} onClick={() => setActiveTab("place")}>Mesto</button>
       </div>
 
       <hr />
