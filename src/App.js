@@ -9,6 +9,8 @@ function App() {
   const [placeAction, setPlaceAction] = useState("add")
   const [showAllPlaces, setShowAllPlaces] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
+  const [apiSuccess, setApiSuccess] = useState("");
 
   const [personData, setPersonData] = useState({
     firstName: "",
@@ -163,14 +165,15 @@ function App() {
   };
 
   const handleSubmitPerson = async () => {
-    console.log("Fja dodavanja osobe");
+    setApiError("");
+    setApiError("");
+
     const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    console.log('Slanje osobe: ', personData);
     try {
       const url = "http://localhost:8080/person";
       const res = await axios.post(url, {
@@ -182,59 +185,73 @@ function App() {
         cityResidenceName: personData.cityResidenceName
       });
       resetForm();
-      console.log("Response:", res.data);
+      setApiSuccess("Osoba je uspešno dodata.");
+
     } catch (err) {
-      console.log(err);
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
     }
   };
 
   const handleDeletePerson = async () => {
-    console.log("Fja brisanja osobe");
+    setApiError("");
+    setApiError("");
+
     const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    console.log('Brisanje osobe: ', personData);
     try {
       const uniqueId = parseInt(personData.uniqueIdentificationNumber, 10);
       const url = `http://localhost:8080/person/${uniqueId}`;
-
       const res = await axios.delete(url);
       resetForm();
-      console.log("Response:", res.data);
+      setApiSuccess("Osoba je uspešno obrisana.");
+
     } catch (err) {
-      console.log(err);
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
     }
   };
 
   const handleUpdatePerson = async () => {
+    setApiError("");
+    setApiError("");
+
     const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    console.log('Ažuriranje osobe: ', personData)
     try {
       const url = "http://localhost:8080/person";
-
       const res = await axios.put(url, {
         uniqueIdentificationNumber: Number(personData.uniqueIdentificationNumber),
         cityResidenceName: personData.cityResidenceName
       });
 
       resetForm();
-      console.log("Response:", res.data);
+      setApiSuccess('Osoba je uspešno ažurirana');
     } catch (err) {
-      console.log(err);
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
     }
   };
 
 
   const validatePlace = (data, placeAction) => {
-    console.log(data);
     const errors = {};
 
     if (placeAction === "add") {
@@ -308,13 +325,15 @@ function App() {
   };
 
   const handleSubmitPlace = async () => {
+    setApiError("");
+    setApiSuccess("");
+
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    console.log("Slanje mesta:", placeData);
     try {
       const url = "http://localhost:8080/city";
       const res = await axios.post(url, {
@@ -323,41 +342,53 @@ function App() {
         population: placeData.population ? parseInt(placeData.population, 10) : null
       });
       resetForm();
-      console.log("Response:", res.data);
+      setApiSuccess("Mesto je uspešno dodato.")
     } catch (err) {
-      console.log(err);
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
     }
 
   };
 
   const handleDeletePlace = async () => {
+    setApiError("");
+    setApiSuccess("");
+
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    console.log("Brisanje mesta:", placeData);
     try {
       const postalCode = parseInt(placeData.postalCode, 10);
       const url = `http://localhost:8080/city/${postalCode}`;
 
       const res = await axios.delete(url);
       resetForm();
-      console.log("Response:", res.data);
+      setApiSuccess("Mesto je uspešno obrisano");
     } catch (err) {
-      console.log(err);
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
     }
   };
 
   const handleUpdatePlace = async () => {
+    setApiError("");
+    setApiSuccess("");
+
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    console.log("Izmena mesta: ", placeData);
     try {
       const url = "http://localhost:8080/city";
 
@@ -368,9 +399,13 @@ function App() {
       });
 
       resetForm();
-      console.log("Response:", res.data);
+      setApiSuccess("Osoba je uspešno izmenjena.")
     } catch (err) {
-      console.log(err);
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
     }
   };
 
@@ -569,6 +604,9 @@ function App() {
           >
             Pošalji
           </button>
+
+          {apiError && <div style={{ color: "red", marginTop: "10px" }}>{apiError}</div>}
+          {apiSuccess && <div style={{ color: "green", marginTop: "10px" }}>{apiSuccess}</div>}
 
           {/* Dugme za prikaz svih osoba */}
           <button onClick={fetchAllPersons} style={buttonStyle}>
