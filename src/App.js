@@ -27,9 +27,20 @@ function App() {
     population: "",
   });
 
+  useEffect(() => {
+    if (apiSuccess) {
+      const timer = setTimeout(() => {
+        setApiSuccess("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [apiSuccess]);
+
   const [personList, setPersonList] = useState([]);
   const [placeList, setPlaceList] = useState([]);
-
+  const [selectedPerson, setSelectedPerson] = useState("");
+  const [residenceHistory, setResidenceHistory] = useState([]);
 
   const inputStyle = { display: "block", marginBottom: "10px", padding: "10px", fontSize: "16px", width: "300px" };
   const selectStyle = { ...inputStyle, fontWeight: "bold" };
@@ -79,6 +90,11 @@ function App() {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    fetchAllPersons();
+    fetchAllPlaces();
+  }, []);
 
   useEffect(() => {
     if (activeTab === "person") {
@@ -241,6 +257,26 @@ function App() {
 
       resetForm();
       setApiSuccess('Osoba je uspešno ažurirana');
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setApiError("Server nije dostupan.");
+      }
+    }
+  };
+
+
+  const handleGetPersonResidence = async (uniqueId) => {
+    setApiError("");
+    setApiError("");
+
+    try {
+      const url = `http://localhost:8080/person/${uniqueId}`;
+      const res = await axios.get(url);
+
+      setResidenceHistory(res.data);
+      setApiSuccess("Isorija prebivališta je uspešno učitana");
     } catch (err) {
       if (err.response && err.response.data) {
         setApiError(err.response.data.message || "Došlo je do greške na serveru.");
@@ -452,6 +488,8 @@ function App() {
             <option value="add">Dodaj novu osobu</option>
             <option value="delete">Obriši osobu</option>
             <option value="update">Izmeni osobu</option>
+            <option value="residence">Prikaz istorijata stanovanja</option>
+
           </select>
 
           {personAction === "add" && (
@@ -592,13 +630,65 @@ function App() {
             </>
           )}
 
+          {personAction === 'residence' && (
+            <>
+              <select
+                value={selectedPerson}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  setSelectedPerson(selectedId);
+
+                  if (selectedId) {
+                    handleGetPersonResidence(selectedId);
+                  }
+                }}
+                style={selectStyle}
+              >
+                <option value="">-- Izaberi osobu --</option>
+                {personList.map((person) => (
+                  <option key={person.id} value={person.uniqueIdentificationNumber}>
+                    {person.firstName} {person.lastName}
+                  </option>
+                ))}
+              </select>
+
+              {residenceHistory.length > 0 && (
+                <table border="1" cellPadding="10" style={{ marginTop: "20px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      <th>Ime</th>
+                      <th>Prezime</th>
+                      <th>Mesto prebivališta</th>
+                      <th>Datum od</th>
+                      <th>Datum do</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {residenceHistory.map((h, index) => (
+                      <tr key={index}>
+                        <td>{h.firstName}</td>
+                        <td>{h.lastName}</td>
+                        <td>{h.cityResidenceName}</td>
+                        <td>{h.residenceStart}</td>
+                        <td>{h.residenceEnd || "Trenutno"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+            </>
+          )}
+
           <button
             onClick={
               personAction === "add"
                 ? handleSubmitPerson
                 : personAction === "delete"
                   ? handleDeletePerson
-                  : handleUpdatePerson
+                  : personAction === "update"
+                    ? handleUpdatePerson
+                    : () => { }
             }
             style={buttonStyle}
           >
