@@ -72,7 +72,6 @@ function App() {
       const url = "http://localhost:8080/person/all";
       const res = await axios.get(url);
       setPersonList(res.data);
-      setShowAllPersons(true);
       console.log("Response:", res.data);
     } catch (err) {
       console.error(err);
@@ -84,7 +83,6 @@ function App() {
       const url = "http://localhost:8080/city/all";
       const res = await axios.get(url);
       setPlaceList(res.data);
-      setShowAllPlaces(true);
       console.log("Response:", res.data);
     } catch (err) {
       console.error(err);
@@ -295,6 +293,10 @@ function App() {
         errors.name = "Naziv mesta mora biti unet.";
       } else if (data.name.length < 2 || data.name.length > 30) {
         errors.name = "Naziv mesta mora imati između 2 i 30 karaktera.";
+      } else if (!/^[A-Za-zČĆŽŠĐčćžšđ\s]+$/.test(data.name)) {
+        errors.name = "Naziv mesta može sadržati samo slova.";
+      } else if (!/^[A-ZČĆŽŠĐ]/.test(data.name)) {
+        errors.name = "Naziv mesta mora početi velikim slovom.";
       }
 
       const postalCode = parseInt(data.postalCode, 10);
@@ -698,8 +700,13 @@ function App() {
           {apiError && <div style={{ color: "red", marginTop: "10px" }}>{apiError}</div>}
           {apiSuccess && <div style={{ color: "green", marginTop: "10px" }}>{apiSuccess}</div>}
 
-          {/* Dugme za prikaz svih osoba */}
-          <button onClick={fetchAllPersons} style={buttonStyle}>
+          <button
+            onClick={() => {
+              fetchAllPersons();
+              setShowAllPersons(true);
+            }}
+            style={buttonStyle}
+          >
             Prikaži sve osobe
           </button>
 
@@ -792,7 +799,13 @@ function App() {
             Pošalji
           </button>
 
-          <button onClick={fetchAllPlaces} style={buttonStyle}>
+          <button
+            onClick={() => {
+              fetchAllPlaces();
+              setShowAllPlaces(true);
+            }}
+            style={buttonStyle}
+          >
             Prikaži sva mesta
           </button>
 
