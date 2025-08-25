@@ -9,8 +9,11 @@ function App() {
   const [placeAction, setPlaceAction] = useState("add")
   const [showAllPlaces, setShowAllPlaces] = useState(false);
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState("");
-  const [apiSuccess, setApiSuccess] = useState("");
+
+  const [personApiError, setPersonApiError] = useState("");
+  const [personApiSuccess, setPersonApiSuccess] = useState("");
+  const [placeApiError, setPlaceApiError] = useState("");
+  const [placeApiSuccess, setPlaceApiSuccess] = useState("");
 
   const [personData, setPersonData] = useState({
     firstName: "",
@@ -28,14 +31,24 @@ function App() {
   });
 
   useEffect(() => {
-    if (apiSuccess) {
+    if (personApiSuccess) {
       const timer = setTimeout(() => {
-        setApiSuccess("");
+        setPersonApiSuccess("");
       }, 3000);
 
       return () => clearTimeout(timer);
     }
-  }, [apiSuccess]);
+  }, [personApiSuccess]);
+
+  useEffect(() => {
+    if (placeApiSuccess) {
+      const timer = setTimeout(() => {
+        setPlaceApiSuccess("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [placeApiSuccess]);
 
   const [personList, setPersonList] = useState([]);
   const [placeList, setPlaceList] = useState([]);
@@ -179,8 +192,8 @@ function App() {
   };
 
   const handleSubmitPerson = async () => {
-    setApiError("");
-    setApiError("");
+    setPersonApiError("");
+    setPersonApiSuccess("");
 
     const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -199,20 +212,20 @@ function App() {
         cityResidenceName: personData.cityResidenceName
       });
       resetForm();
-      setApiSuccess("Osoba je uspešno dodata.");
+      setPersonApiSuccess("Osoba je uspešno dodata.");
 
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPersonApiError("Server nije dostupan.");
       }
     }
   };
 
   const handleDeletePerson = async () => {
-    setApiError("");
-    setApiError("");
+    setPersonApiError("");
+    setPersonApiSuccess("");
 
     const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -225,20 +238,20 @@ function App() {
       const url = `http://localhost:8080/person/${uniqueId}`;
       const res = await axios.delete(url);
       resetForm();
-      setApiSuccess("Osoba je uspešno obrisana.");
+      setPersonApiSuccess("Osoba je uspešno obrisana.");
 
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPersonApiError("Server nije dostupan.");
       }
     }
   };
 
   const handleUpdatePerson = async () => {
-    setApiError("");
-    setApiError("");
+    setPersonApiError("");
+    setPersonApiSuccess("");
 
     const validationErrors = validatePerson(personData, personAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -254,32 +267,32 @@ function App() {
       });
 
       resetForm();
-      setApiSuccess('Osoba je uspešno ažurirana');
+      setPersonApiSuccess('Osoba je uspešno ažurirana');
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPersonApiError("Server nije dostupan.");
       }
     }
   };
 
 
   const handleGetPersonResidence = async (uniqueId) => {
-    setApiError("");
-    setApiError("");
+    setPersonApiError("");
+    setPersonApiSuccess("");
 
     try {
       const url = `http://localhost:8080/person/${uniqueId}`;
       const res = await axios.get(url);
 
       setResidenceHistory(res.data);
-      setApiSuccess("Isorija prebivališta je uspešno učitana");
+      setPersonApiSuccess("Isorija prebivališta je uspešno učitana");
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPersonApiError("Server nije dostupan.");
       }
     }
   };
@@ -363,8 +376,8 @@ function App() {
   };
 
   const handleSubmitPlace = async () => {
-    setApiError("");
-    setApiSuccess("");
+    setPlaceApiError("");
+    setPlaceApiSuccess("");
 
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -380,20 +393,20 @@ function App() {
         population: placeData.population ? parseInt(placeData.population, 10) : null
       });
       resetForm();
-      setApiSuccess("Mesto je uspešno dodato.")
+      setPlaceApiSuccess("Mesto je uspešno dodato.")
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPlaceApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPlaceApiError("Server nije dostupan.");
       }
     }
 
   };
 
   const handleDeletePlace = async () => {
-    setApiError("");
-    setApiSuccess("");
+    setPlaceApiError("");
+    setPlaceApiSuccess("");
 
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -407,19 +420,19 @@ function App() {
 
       const res = await axios.delete(url);
       resetForm();
-      setApiSuccess("Mesto je uspešno obrisano");
+      setPlaceApiSuccess("Mesto je uspešno obrisano");
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPlaceApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPlaceApiError("Server nije dostupan.");
       }
     }
   };
 
   const handleUpdatePlace = async () => {
-    setApiError("");
-    setApiSuccess("");
+    setPlaceApiError("");
+    setPlaceApiSuccess("");
 
     const validationErrors = validatePlace(placeData, placeAction);
     if (Object.keys(validationErrors).length > 0) {
@@ -437,12 +450,12 @@ function App() {
       });
 
       resetForm();
-      setApiSuccess("Osoba je uspešno izmenjena.")
+      setPlaceApiSuccess("Osoba je uspešno izmenjena.")
     } catch (err) {
       if (err.response && err.response.data) {
-        setApiError(err.response.data.message || "Došlo je do greške na serveru.");
+        setPlaceApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
-        setApiError("Server nije dostupan.");
+        setPlaceApiError("Server nije dostupan.");
       }
     }
   };
@@ -697,8 +710,8 @@ function App() {
             Pošalji
           </button>
 
-          {apiError && <div style={{ color: "red", marginTop: "10px" }}>{apiError}</div>}
-          {apiSuccess && <div style={{ color: "green", marginTop: "10px" }}>{apiSuccess}</div>}
+          {personApiError && <div style={{ color: "red", marginTop: "10px" }}>{personApiError}</div>}
+          {personApiSuccess && <div style={{ color: "green", marginTop: "10px" }}>{personApiSuccess}</div>}
 
           <button
             onClick={() => {
@@ -798,6 +811,9 @@ function App() {
           >
             Pošalji
           </button>
+
+          {placeApiError && <div style={{ color: "red", marginTop: "10px" }}>{placeApiError}</div>}
+          {placeApiSuccess && <div style={{ color: "green", marginTop: "10px" }}>{placeApiSuccess}</div>}
 
           <button
             onClick={() => {
