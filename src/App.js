@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import sr from "date-fns/locale/sr";
+
+registerLocale("sr", sr);
 
 function App() {
   const [activeTab, setActiveTab] = useState("person");
@@ -18,7 +23,7 @@ function App() {
   const [personData, setPersonData] = useState({
     firstName: "",
     lastName: "",
-    dateOfBirth: "",
+    dateOfBirth: null,
     uniqueIdentificationNumber: "",
     cityBirthName: "",
     cityResidenceName: ""
@@ -488,7 +493,7 @@ function App() {
 
       <hr />
 
-      {/* TAB OSOBA */}
+      {/* TAB PERSON */}
       {activeTab === "person" && (
         <div>
           <h2>Podaci o osobi</h2>
@@ -529,14 +534,18 @@ function App() {
               />
               {errors.lastName && <div style={{ color: "red" }}>{errors.lastName}</div>}
 
-              <input
-                style={inputStyle}
-                type="date"
-                placeholder="Datum rođenja"
-                value={personData.dateOfBirth}
-                onChange={(e) =>
-                  setPersonData({ ...personData, dateOfBirth: e.target.value })
+              <DatePicker
+                selected={personData.dateOfBirth ? new Date(personData.dateOfBirth) : null}
+                onChange={(date) =>
+                  setPersonData({
+                    ...personData,
+                    dateOfBirth: date ? date.toISOString().split("T")[0] : "",
+                  })
                 }
+                dateFormat="dd.MM.yyyy"
+                placeholderText="Datum rođenja"
+                locale="sr"
+                customInput={<input style={inputStyle} />}
               />
               {errors.dateOfBirth && (
                 <div style={{ color: "red" }}>{errors.dateOfBirth}</div>
@@ -752,7 +761,7 @@ function App() {
         </div>
       )}
 
-      {/* TAB MESTO */}
+      {/* TAB PLACE */}
       {activeTab === "place" && (
         <div>
           <h2>Podaci o mestu</h2>
