@@ -26,7 +26,9 @@ function App() {
     dateOfBirth: null,
     uniqueIdentificationNumber: "",
     cityBirthName: "",
-    cityResidenceName: ""
+    cityResidenceName: "",
+    payment: null,
+    paymentDate: null
   });
 
   const [placeData, setPlaceData] = useState({
@@ -59,6 +61,8 @@ function App() {
   const [placeList, setPlaceList] = useState([]);
   const [selectedPerson, setSelectedPerson] = useState("");
   const [residenceHistory, setResidenceHistory] = useState([]);
+
+  const paymentReasons = ["Školarina", "Renta", "Praksa", "Plata"];
 
   const inputStyle = { display: "block", marginBottom: "10px", padding: "10px", fontSize: "16px", width: "300px" };
   const selectStyle = { ...inputStyle, fontWeight: "bold" };
@@ -191,7 +195,37 @@ function App() {
       if (!data.cityResidenceName || data.cityResidenceName.trim() === "") {
         errors.cityResidenceName = "Morate izabrati mesto prebivališta.";
       }
+    } else if (personAction === 'payment') {
+      if (!data.selectedPerson) {
+        errors.selectedPerson = "Morate izabrati osobu.";
+      }
+
+      if (!data.payment) {
+        errors.payment = "Iznos isplate mora biti unet.";
+      } else if (!/^[0-9]+$/.test(data.payment)) {
+        errors.payment = "Iznos isplate mora biti celobrojan broj.";
+      }
+
+      if (!data.reason || data.reason.trim() === "") {
+        errors.reason = "Morate izabrati razlog isplate.";
+      }
+
+      if (!data.paymentDate) {
+        errors.paymentDate = "Datum mora biti unet.";
+      } else {
+        const today = new Date();
+        const enteredDate = new Date(data.dateOfBirth);
+
+        today.setHours(0, 0, 0, 0);
+
+        if (isNaN(enteredDate.getTime())) {
+          errors.paymentDate = "Neispravan format datuma.";
+        } else if (enteredDate > today) {
+          errors.paymentDate = "Datum isplate ne može biti u budućnosti.";
+        }
+      }
     }
+
 
     return errors;
   };
@@ -301,6 +335,19 @@ function App() {
       }
     }
   };
+
+  const handlePersonPayment = async () => {
+    setPersonApiError("");
+    setPersonApiSuccess("");
+
+    const validationErrors = validatePerson(personData, personAction);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+
+  }
 
 
   const validatePlace = (data, placeAction) => {
@@ -509,7 +556,7 @@ function App() {
             <option value="delete">Obriši osobu</option>
             <option value="update">Izmeni osobu</option>
             <option value="residence">Prikaz istorijata stanovanja</option>
-
+            <option value="payment">Dodaj isplatu za osobu</option>
           </select>
 
           {personAction === "add" && (
@@ -704,6 +751,83 @@ function App() {
             </>
           )}
 
+          {personAction === 'payment' && (
+            <>
+              <select
+                value={selectedPerson}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  setSelectedPerson(selectedId);
+
+                  setPersonData({ ...personData, selectedPerson: selectedId });
+
+                  if (selectedId) {
+                    handleGetPersonResidence(selectedId);
+                  }
+                }}
+                style={selectStyle}
+              >
+                <option value="">-- Izaberi osobu --</option>
+                {personList.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.firstName} {person.lastName}
+                  </option>
+                ))}
+              </select>
+              {errors.selectedPerson && (
+                <div style={{ color: "red" }}>{errors.selectedPerson}</div>
+              )}
+
+              <input
+                style={inputStyle}
+                placeholder="Isplata"
+                value={personData.payment}
+                onChange={(e) =>
+                  setPersonData({ ...personData, payment: e.target.value })
+                }
+              />
+              {errors.payment && (
+                <div style={{ color: "red" }}>{errors.payment}</div>
+              )}
+
+              <select
+                value={personData.reason || ""}
+                onChange={(e) =>
+                  setPersonData({ ...personData, reason: e.target.value })
+                }
+                style={selectStyle}
+              >
+                <option value="">-- Izaberi razlog --</option>
+                {paymentReasons.map((reason, index) => (
+                  <option key={index} value={reason}>
+                    {reason}
+                  </option>
+                ))}
+              </select>
+              {errors.reason && (
+                <div style={{ color: "red" }}>{errors.reason}</div>
+              )}
+
+              <DatePicker
+                selected={personData.paymentDate ? new Date(personData.paymentDate) : null}
+                onChange={(date) =>
+                  setPersonData({
+                    ...personData,
+                    paymentDate: date ? date.toISOString().split("T")[0] : "",
+                  })
+                }
+                dateFormat="dd.MM.yyyy"
+                placeholderText="Datum isplate"
+                locale="sr"
+                customInput={<input style={inputStyle} />}
+              />
+              {errors.paymentDate && (
+                <div style={{ color: "red" }}>{errors.paymentDate}</div>
+              )}
+              <br />
+            </>
+          )}
+
           <button
             onClick={
               personAction === "add"
@@ -712,7 +836,9 @@ function App() {
                   ? handleDeletePerson
                   : personAction === "update"
                     ? handleUpdatePerson
-                    : () => { }
+                    : personAction === "payment"
+                      ? handlePersonPayment
+                      : () => { }
             }
             style={buttonStyle}
           >
