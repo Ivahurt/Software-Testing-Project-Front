@@ -20,6 +20,7 @@ function App() {
   const [placeApiError, setPlaceApiError] = useState("");
   const [placeApiSuccess, setPlaceApiSuccess] = useState("");
 
+
   const [personData, setPersonData] = useState({
     firstName: "",
     lastName: "",
@@ -28,7 +29,8 @@ function App() {
     cityBirthName: "",
     cityResidenceName: "",
     payment: null,
-    paymentDate: null
+    paymentDate: null,
+    paymentReason: null
   });
 
   const [placeData, setPlaceData] = useState({
@@ -63,6 +65,8 @@ function App() {
   const [residenceHistory, setResidenceHistory] = useState([]);
 
   const paymentReasons = ["Školarina", "Renta", "Praksa", "Plata"];
+
+  const [personPayments, setPersonPayments] = useState([]);
 
   const inputStyle = { display: "block", marginBottom: "10px", padding: "10px", fontSize: "16px", width: "300px" };
   const selectStyle = { ...inputStyle, fontWeight: "bold" };
@@ -196,8 +200,8 @@ function App() {
         errors.cityResidenceName = "Morate izabrati mesto prebivališta.";
       }
     } else if (personAction === 'payment') {
-      if (!data.selectedPerson) {
-        errors.selectedPerson = "Morate izabrati osobu.";
+      if (!data.id) {
+        errors.id = "Morate izabrati osobu.";
       }
 
       if (!data.payment) {
@@ -206,7 +210,7 @@ function App() {
         errors.payment = "Iznos isplate mora biti celobrojan broj.";
       }
 
-      if (!data.reason || data.reason.trim() === "") {
+      if (!data.paymentReason || data.paymentReason.trim() === "") {
         errors.reason = "Morate izabrati razlog isplate.";
       }
 
@@ -259,6 +263,10 @@ function App() {
       } else {
         setPersonApiError("Server nije dostupan.");
       }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
     }
   };
 
@@ -285,6 +293,10 @@ function App() {
       } else {
         setPersonApiError("Server nije dostupan.");
       }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
     }
   };
 
@@ -313,6 +325,10 @@ function App() {
       } else {
         setPersonApiError("Server nije dostupan.");
       }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
     }
   };
 
@@ -327,12 +343,17 @@ function App() {
 
       setResidenceHistory(res.data);
       setPersonApiSuccess("Isorija prebivališta je uspešno učitana");
+
     } catch (err) {
       if (err.response && err.response.data) {
         setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
       } else {
         setPersonApiError("Server nije dostupan.");
       }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
     }
   };
 
@@ -346,8 +367,55 @@ function App() {
       return;
     }
 
+    console.log(personData);
+    try {
+      const url = "http://localhost:8080/person/payment";
+      const res = await axios.post("http://localhost:8080/person/payment", {
+        uniqueIdentificationNumber: Number(personData.uniqueIdentificationNumber),
+        amount: Number(personData.payment),
+        reason: personData.paymentReason,
+        paymentDate: personData.paymentDate
+      });
 
+      resetForm();
+      setPersonApiSuccess('Isplata je uspešno dodata');
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setPersonApiError("Server nije dostupan.");
+      }
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
+    }
   }
+
+  const handleGetPersonPayments = async (uniqueId) => {
+    setPersonApiError("");
+    setPersonApiSuccess("");
+
+    try {
+      const url = `http://localhost:8080/person/payment/${uniqueId}`;
+      const res = await axios.get(url);
+
+      setPersonPayments(res.data);
+      setPersonApiSuccess("Isorija isplate je uspešno učitana");
+      console.log(personPayments);
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setPersonApiError("Server nije dostupan.");
+      }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
+    }
+  };
+
+
 
 
   const validatePlace = (data, placeAction) => {
@@ -452,8 +520,11 @@ function App() {
       } else {
         setPlaceApiError("Server nije dostupan.");
       }
-    }
 
+      setTimeout(() => {
+        setPlaceApiError("");
+      }, 3000);
+    }
   };
 
   const handleDeletePlace = async () => {
@@ -479,6 +550,10 @@ function App() {
       } else {
         setPlaceApiError("Server nije dostupan.");
       }
+
+      setTimeout(() => {
+        setPlaceApiError("");
+      }, 3000);
     }
   };
 
@@ -509,6 +584,10 @@ function App() {
       } else {
         setPlaceApiError("Server nije dostupan.");
       }
+
+      setTimeout(() => {
+        setPlaceApiError("");
+      }, 3000);
     }
   };
 
@@ -557,6 +636,7 @@ function App() {
             <option value="update">Izmeni osobu</option>
             <option value="residence">Prikaz istorijata stanovanja</option>
             <option value="payment">Dodaj isplatu za osobu</option>
+            <option value="payment_histories">Prikaz svih isplata za osobu</option>
           </select>
 
           {personAction === "add" && (
@@ -759,10 +839,21 @@ function App() {
                   const selectedId = e.target.value;
                   setSelectedPerson(selectedId);
 
-                  setPersonData({ ...personData, selectedPerson: selectedId });
+                  const selectedPersonObj = personList.find(
+                    (person) => person.id.toString() === selectedId
+                  );
 
-                  if (selectedId) {
-                    handleGetPersonResidence(selectedId);
+                  if (selectedPersonObj) {
+                    setPersonData({
+                      ...personData,
+                      id: selectedPersonObj.id,
+                      firstName: selectedPersonObj.firstName,
+                      lastName: selectedPersonObj.lastName,
+                      dateOfBirth: selectedPersonObj.dateOfBirth,
+                      uniqueIdentificationNumber: selectedPersonObj.uniqueIdentificationNumber,
+                      cityBirthName: selectedPersonObj.cityBirthName,
+                      cityResidenceName: selectedPersonObj.cityResidenceName,
+                    });
                   }
                 }}
                 style={selectStyle}
@@ -774,8 +865,8 @@ function App() {
                   </option>
                 ))}
               </select>
-              {errors.selectedPerson && (
-                <div style={{ color: "red" }}>{errors.selectedPerson}</div>
+              {errors.id && (
+                <div style={{ color: "red" }}>{errors.id}</div>
               )}
 
               <input
@@ -791,9 +882,9 @@ function App() {
               )}
 
               <select
-                value={personData.reason || ""}
+                value={personData.paymentReason || ""}
                 onChange={(e) =>
-                  setPersonData({ ...personData, reason: e.target.value })
+                  setPersonData({ ...personData, paymentReason: e.target.value })
                 }
                 style={selectStyle}
               >
@@ -804,8 +895,8 @@ function App() {
                   </option>
                 ))}
               </select>
-              {errors.reason && (
-                <div style={{ color: "red" }}>{errors.reason}</div>
+              {errors.paymentReason && (
+                <div style={{ color: "red" }}>{errors.paymentReason}</div>
               )}
 
               <DatePicker
@@ -827,6 +918,54 @@ function App() {
               <br />
             </>
           )}
+
+          {
+            personAction === "payment_histories" && (
+              <>
+                <select
+                  value={selectedPerson}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setSelectedPerson(selectedId);
+
+                    if (selectedId) {
+                      handleGetPersonPayments(selectedId);
+                    }
+                  }}
+                  style={selectStyle}
+                >
+                  <option value="">-- Izaberi osobu --</option>
+                  {personList.map((person) => (
+                    <option key={person.id} value={person.uniqueIdentificationNumber}>
+                      {person.firstName} {person.lastName}
+                    </option>
+                  ))}
+                </select>
+
+                {personPayments.length > 0 && (
+                  <table border="1" cellPadding="10" style={{ marginTop: "20px", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        <th>Iznos</th>
+                        <th>Razlog isplate</th>
+                        <th>Datum isplate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {personPayments.map((h, index) => (
+                        <tr key={index}>
+                          <td>{h.amount}</td>
+                          <td>{h.reason}</td>
+                          <td>{h.paymentDate}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+
+              </>
+            )
+          }
 
           <button
             onClick={
