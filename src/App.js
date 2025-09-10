@@ -109,7 +109,6 @@ function App() {
       const url = "http://localhost:8080/city/all";
       const res = await axios.get(url);
       setPlaceList(res.data);
-      console.log("Response:", res.data);
     } catch (err) {
       console.error(err);
     }
@@ -990,7 +989,7 @@ function App() {
           <button
             onClick={() => {
               fetchAllPersons();
-              setShowAllPersons(true);
+              setShowAllPersons((prev) => (!prev));
             }}
             style={buttonStyle}
           >
@@ -1092,7 +1091,7 @@ function App() {
           <button
             onClick={() => {
               fetchAllPlaces();
-              setShowAllPlaces(true);
+              setShowAllPlaces((prev) => (!prev));
             }}
             style={buttonStyle}
           >
