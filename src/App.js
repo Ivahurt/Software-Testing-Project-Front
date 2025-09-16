@@ -6,7 +6,9 @@ import sr from "date-fns/locale/sr";
 
 registerLocale("sr", sr);
 
-function App() {
+function App({ onLogout }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const [activeTab, setActiveTab] = useState("person");
   const [personAction, setPersonAction] = useState("add");
   const [showAllPersons, setShowAllPersons] = useState(false);
@@ -80,6 +82,40 @@ function App() {
     borderRadius: "8px",
     border: "1px solid #ccc"
   };
+
+  const logoutButtonStyle = {
+    position: "fixed",
+    bottom: "40px",
+    right: "40px",
+    padding: "10px 20px",
+    backgroundColor: "red",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "16px"
+  };
+
+  const modalStyle = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  };
+
+  const modalContentStyle = {
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    textAlign: "center"
+  };
+
 
 
   const tabContainerStyle = {
@@ -588,6 +624,15 @@ function App() {
         setPlaceApiError("");
       }, 3000);
     }
+  };
+
+  const handleLogout = () => {
+    setShowConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowConfirm(false);
+    onLogout();
   };
 
   return (
@@ -1118,6 +1163,24 @@ function App() {
               </tbody>
             </table>
           )}
+        </div>
+      )}
+
+      <button style={logoutButtonStyle} onClick={handleLogout}>
+        Odjavi se
+      </button>
+
+      {showConfirm && (
+        <div style={modalStyle}>
+          <div style={modalContentStyle}>
+            <h3>Da li ste sigurni da želite da se odjavite?</h3>
+            <button style={{ ...buttonStyle, backgroundColor: "red", color: "white" }} onClick={confirmLogout}>
+              Da
+            </button>
+            <button style={{ ...buttonStyle, backgroundColor: "gray", color: "white" }} onClick={() => setShowConfirm(false)}>
+              Ne
+            </button>
+          </div>
         </div>
       )}
     </div>
