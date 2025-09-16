@@ -63,6 +63,10 @@ function App({ onLogout }) {
 
   const [personList, setPersonList] = useState([]);
   const [placeList, setPlaceList] = useState([]);
+  const [userList, setUserList] = useState([]);
+
+  const [userAction, setUserAction] = useState("get")
+
   const [selectedPerson, setSelectedPerson] = useState("");
   const [residenceHistory, setResidenceHistory] = useState([]);
 
@@ -150,9 +154,20 @@ function App({ onLogout }) {
     }
   };
 
+  const fetchAllUsers = async () => {
+    try {
+      const url = "http://localhost:8080/users/";
+      const res = await axios.get(url);
+      setUserList(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchAllPersons();
     fetchAllPlaces();
+    fetchAllUsers();
   }, []);
 
   useEffect(() => {
@@ -161,7 +176,11 @@ function App({ onLogout }) {
     }
   }, [activeTab]);
 
-
+  useEffect(() => {
+    if (userAction === "get") {
+      fetchAllUsers();
+    }
+  }, [userAction]);
 
   const validatePerson = (data, personAction) => {
     const errors = {};
@@ -522,13 +541,17 @@ function App({ onLogout }) {
       cityBirthName: "",
       cityResidenceName: ""
     });
+
     setPlaceData({
       name: "",
       postalCode: "",
       population: ""
     });
+
     setErrors({});
   };
+
+
 
   const handleSubmitPlace = async () => {
     setPlaceApiError("");
@@ -658,6 +681,17 @@ function App({ onLogout }) {
           onClick={() => setActiveTab("place")}
         >
           Mesto
+        </button>
+
+        <button
+          style={{
+            ...buttonStyle,
+            backgroundColor: activeTab === "users" ? "black" : "white",
+            color: activeTab === "users" ? "white" : "black",
+          }}
+          onClick={() => setActiveTab("users")}
+        >
+          Korisnici
         </button>
       </div>
 
@@ -1164,6 +1198,39 @@ function App({ onLogout }) {
             </table>
           )}
         </div>
+      )}
+
+      {/* TAB USERS */}
+      {activeTab === "users" && (
+        <>
+          <div>
+            <h2>Svi trenutni korisnici</h2>
+
+            {userAction === "get" && (
+              <>
+                <table border="1" cellPadding="10" style={{ marginTop: "20px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      <th>Ime</th>
+                      <th>Prezime</th>
+                      <th>Korisničko ime</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userList.map((user, index) => (
+                      <tr key={index}>
+                        <td>{user.firstName}</td>
+                        <td>{user.lastName}</td>
+                        <td>{user.username}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+
+          </div>
+        </>
       )}
 
       <button style={logoutButtonStyle} onClick={handleLogout}>
