@@ -27,6 +27,8 @@ function App({ onLogout }) {
     firstName: "",
     lastName: "",
     dateOfBirth: null,
+    ageInMonths1: null,
+    sumOfPayments: null,
     uniqueIdentificationNumber: "",
     cityBirthName: "",
     cityResidenceName: "",
@@ -450,12 +452,65 @@ function App({ onLogout }) {
     setPersonApiSuccess("");
 
     try {
+      console.log("Funkcija za vracanje svih isplata za osobu");
+
       const url = `http://localhost:8080/person/payment/${uniqueId}`;
       const res = await axios.get(url);
 
       setPersonPayments(res.data);
       setPersonApiSuccess("Isorija isplate je uspešno učitana");
       console.log(personPayments);
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setPersonApiError("Server nije dostupan.");
+      }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
+    }
+  };
+
+
+  const handleGetPersonAge = async (uniqueId) => {
+    setPersonApiError("");
+    setPersonApiSuccess("");
+
+    try {
+      const url = `http://localhost:8080/person/age/${uniqueId}`;
+      const res = await axios.get(url);
+
+      setPersonData(res.data);
+      setPersonApiSuccess("Starost je uspešno učitana");
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
+      } else {
+        setPersonApiError("Server nije dostupan.");
+      }
+
+      setTimeout(() => {
+        setPersonApiError("");
+      }, 3000);
+    }
+  };
+
+
+
+  const handleGetPersonSumOfPayments = async (uniqueId) => {
+    setPersonApiError("");
+    setPersonApiSuccess("");
+
+    try {
+      console.log('Funkcija za prikaz ukupne isplate osobe');
+
+      const url = `http://localhost:8080/person/sum-payments/${uniqueId}`;
+      const res = await axios.get(url);
+
+      setPersonData(res.data);
+      setPersonApiSuccess("Ukupna isplata je uspešno učitana");
     } catch (err) {
       if (err.response && err.response.data) {
         setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
@@ -715,6 +770,9 @@ function App({ onLogout }) {
             <option value="residence">Prikaz istorijata stanovanja</option>
             <option value="payment">Dodaj isplatu za osobu</option>
             <option value="payment_histories">Prikaz svih isplata za osobu</option>
+            <option value="age">Prikaz starosti izražen u mesecima</option>
+            <option value="sum_of_payments">Prikaz ukupne isplate za osobu</option>
+
           </select>
 
           {personAction === "add" && (
@@ -1045,6 +1103,64 @@ function App({ onLogout }) {
             )
           }
 
+          {
+            personAction === "age" && (
+              <>
+                <select
+                  value={selectedPerson}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setSelectedPerson(selectedId);
+
+                    if (selectedId) {
+                      handleGetPersonAge(selectedId);
+                    }
+                  }}
+                  style={selectStyle}
+                >
+                  <option value="">-- Izaberi osobu --</option>
+                  {personList.map((person) => (
+                    <option key={person.id} value={person.uniqueIdentificationNumber}>
+                      {person.firstName} {person.lastName}
+                    </option>
+                  ))}
+                </select>
+                {personData.ageInMonths1 !== null && (
+                  <p>Starost osobe u mesecima: {personData.ageInMonths1}</p>
+                )}
+              </>
+            )
+          }
+
+          {
+            personAction === "sum_of_payments" && (
+              <>
+                <select
+                  value={selectedPerson}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setSelectedPerson(selectedId);
+
+                    if (selectedId) {
+                      handleGetPersonSumOfPayments(selectedId);
+                    }
+                  }}
+                  style={selectStyle}
+                >
+                  <option value="">-- Izaberi osobu --</option>
+                  {personList.map((person) => (
+                    <option key={person.id} value={person.uniqueIdentificationNumber}>
+                      {person.firstName} {person.lastName}
+                    </option>
+                  ))}
+                </select>
+                {personData.sumOfPayments !== null && (
+                  <p>Ukupna isplata osobe izražena u dinarima: {personData.sumOfPayments}</p>
+                )}
+              </>
+            )
+          }
+
           <button
             onClick={
               personAction === "add"
@@ -1055,7 +1171,11 @@ function App({ onLogout }) {
                     ? handleUpdatePerson
                     : personAction === "payment"
                       ? handlePersonPayment
-                      : () => { }
+                      : personAction === "age"
+                        ? handleGetPersonAge
+                        : personAction === "sum_of_payments"
+                          ? handleGetPersonSumOfPayments
+                          : () => { }
             }
             style={buttonStyle}
           >
