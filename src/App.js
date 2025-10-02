@@ -325,6 +325,8 @@ function App({ onLogout }) {
       resetForm();
       setPersonApiSuccess("Osoba je uspešno dodata.");
 
+      setShowAllPersons(false);
+      fetchAllPersons();
     } catch (err) {
       if (err.response && err.response.data) {
         setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
@@ -355,6 +357,8 @@ function App({ onLogout }) {
       resetForm();
       setPersonApiSuccess("Osoba je uspešno obrisana.");
 
+      setShowAllPersons(false);
+      fetchAllPersons();
     } catch (err) {
       if (err.response && err.response.data) {
         setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
@@ -387,6 +391,9 @@ function App({ onLogout }) {
 
       resetForm();
       setPersonApiSuccess('Osoba je uspešno ažurirana');
+
+      setShowAllPersons(false);
+      fetchAllPersons();
     } catch (err) {
       if (err.response && err.response.data) {
         setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
@@ -448,6 +455,9 @@ function App({ onLogout }) {
 
       resetForm();
       setPersonApiSuccess('Isplata je uspešno dodata');
+
+      setShowAllPersons(false);
+      fetchAllPersons();
     } catch (err) {
       if (err.response && err.response.data) {
         setPersonApiError(err.response.data.message || "Došlo je do greške na serveru.");
