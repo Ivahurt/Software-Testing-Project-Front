@@ -4,18 +4,24 @@ import axios from "axios";
 function Login({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [userList, setUserList] = useState([]);
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [generalError, setGeneralError] = useState("");
+
+  const [attempts, setAttempts] = useState(0);
+  const [locked, setLocked] = useState(false);
 
   const buttonStyle = {
     padding: "10px 20px",
     fontSize: "14px",
-    cursor: "pointer",
+    cursor: locked ? "not-allowed" : "pointer",
     marginTop: "10px",
     marginRight: "10px",
     fontWeight: "bold",
     borderRadius: "8px",
-    border: "1px solid #ccc"
+    border: "1px solid #ccc",
+    backgroundColor: locked ? "#ccc" : "#fff"
   };
 
   const fetchAllUsers = async () => {
@@ -33,32 +39,76 @@ function Login({ onLogin }) {
     fetchAllUsers();
   }, []);
 
+  const handleLockout = () => {
+    setLocked(true);
+    alert("Previše neuspelih pokušaja. Sačekajte 1 minut.");
+    setTimeout(() => {
+      setAttempts(0);
+      setLocked(false);
+    }, 1 * 60 * 1000);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (locked) return;
+
+    setUsernameError("");
+    setPasswordError("");
+    setGeneralError("");
+
+    let valid = true;
+
+    if (!username) {
+      setUsernameError("Korisničko ime mora biti popunjeno");
+      valid = false;
+    } else if (username.length < 4) {
+      setUsernameError("Korisničko ime mora imati najmanje 4 karaktera");
+      valid = false;
+    }
+
+    if (!password) {
+      setPasswordError("Lozinka mora biti popunjena");
+      valid = false;
+    } else if (password.length < 4) {
+      setPasswordError("Lozinka mora imati najmanje 4 karaktera");
+      valid = false;
+    }
+
+    if (!valid) return;
 
     const foundUser = userList.find(
       (u) => u.username === username && u.password === password
     );
 
-    console.log(foundUser)
-
     if (!foundUser) {
-      setError("Korisnik ne postoji ili su podaci pogrešni");
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      console.log(`Neuspešan pokušaj broj: ${newAttempts}`);
+
+      if (newAttempts >= 10) {
+        handleLockout();
+      } else {
+        setGeneralError(
+          `Korisnik ne postoji ili su podaci pogrešni. Pokušaji: ${newAttempts}/10`
+        );
+      }
       return;
     }
 
+    setAttempts(0);
+
     if (foundUser.role.toLowerCase() === "administrator") {
       onLogin("admin");
-      console.log("admin")
     } else {
       onLogin("user");
-      console.log("korisnik")
     }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      handleSubmit();
+      handleSubmit(e);
     }
   };
 
@@ -72,37 +122,47 @@ function Login({ onLogin }) {
           placeholder="Korisničko ime"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={locked}
           style={{
             display: "block",
-            marginBottom: "10px",
+            marginBottom: "5px",
             padding: "10px",
             width: "500px",
             fontSize: "16px"
           }}
         />
+        {usernameError && (
+          <div style={{ color: "red", marginBottom: "10px" }}>{usernameError}</div>
+        )}
+
         <input
           type="password"
           placeholder="Lozinka"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={locked}
           style={{
             display: "block",
-            marginBottom: "10px",
+            marginBottom: "5px",
             padding: "10px",
             width: "500px",
             fontSize: "16px"
-
           }}
         />
-        <button
-          type="submit"
-          style={buttonStyle}
-          onClick={handleSubmit}
-        >
+        {passwordError && (
+          <div style={{ color: "red", marginBottom: "10px" }}>{passwordError}</div>
+        )}
+
+        <button type="submit" style={buttonStyle} disabled={locked}>
           Prijavi se
         </button>
+
+        {generalError && (
+          <div style={{ color: "red", marginTop: "10px" }}>{generalError}</div>
+        )}
       </form>
-      {error && <div style={{ color: "red", marginTop: "10px" }}>{error}</div>}
     </div>
   );
 }
