@@ -22,8 +22,7 @@ function App({ onLogout }) {
   const [placeApiError, setPlaceApiError] = useState("");
   const [placeApiSuccess, setPlaceApiSuccess] = useState("");
 
-
-  const [personData, setPersonData] = useState({
+  const defaultPersonData = {
     firstName: "",
     lastName: "",
     dateOfBirth: null,
@@ -35,7 +34,10 @@ function App({ onLogout }) {
     payment: null,
     paymentDate: null,
     paymentReason: null
-  });
+  };
+
+
+  const [personData, setPersonData] = useState(defaultPersonData);
 
   const [placeData, setPlaceData] = useState({
     name: "",
@@ -63,13 +65,22 @@ function App({ onLogout }) {
     }
   }, [placeApiSuccess]);
 
+  useEffect(() => {
+    if (personData.ageInMonths1 !== null || personData.sumOfPayments !== null) {
+      const timer = setTimeout(() => {
+        setPersonData(defaultPersonData);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [personData.ageInMonths1, personData.sumOfPayments]);
+
   const [personList, setPersonList] = useState([]);
   const [placeList, setPlaceList] = useState([]);
   const [userList, setUserList] = useState([]);
 
   const [userAction, setUserAction] = useState("get")
 
-  const [selectedPerson, setSelectedPerson] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState(null);
   const [residenceHistory, setResidenceHistory] = useState([]);
 
   const paymentReasons = ["Školarina", "Renta", "Praksa", "Plata"];
@@ -306,6 +317,7 @@ function App({ onLogout }) {
         firstName: personData.firstName,
         lastName: personData.lastName,
         dateOfBirth: personData.dateOfBirth,
+        sumOfPayments: 0,
         uniqueIdentificationNumber: parseInt(personData.uniqueIdentificationNumber, 10),
         cityBirthName: personData.cityBirthName,
         cityResidenceName: personData.cityResidenceName
@@ -397,6 +409,7 @@ function App({ onLogout }) {
       const url = `http://localhost:8080/person/${uniqueId}`;
       const res = await axios.get(url);
 
+      resetForm();
       setResidenceHistory(res.data);
       setPersonApiSuccess("Isorija prebivališta je uspešno učitana");
 
@@ -456,7 +469,9 @@ function App({ onLogout }) {
 
       const url = `http://localhost:8080/person/payment/${uniqueId}`;
       const res = await axios.get(url);
+      console.log(res.data)
 
+      resetForm();
       setPersonPayments(res.data);
       setPersonApiSuccess("Isorija isplate je uspešno učitana");
       console.log(personPayments);
@@ -482,6 +497,7 @@ function App({ onLogout }) {
       const url = `http://localhost:8080/person/age/${uniqueId}`;
       const res = await axios.get(url);
 
+      resetForm();
       setPersonData(res.data);
       setPersonApiSuccess("Starost je uspešno učitana");
     } catch (err) {
@@ -509,6 +525,7 @@ function App({ onLogout }) {
       const url = `http://localhost:8080/person/sum-payments/${uniqueId}`;
       const res = await axios.get(url);
 
+      resetForm();
       setPersonData(res.data);
       setPersonApiSuccess("Ukupna isplata je uspešno učitana");
     } catch (err) {
@@ -588,14 +605,7 @@ function App({ onLogout }) {
 
 
   const resetForm = () => {
-    setPersonData({
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      uniqueIdentificationNumber: "",
-      cityBirthName: "",
-      cityResidenceName: ""
-    });
+    setPersonData(defaultPersonData);
 
     setPlaceData({
       name: "",
@@ -604,8 +614,8 @@ function App({ onLogout }) {
     });
 
     setErrors({});
+    setSelectedPerson(null);
   };
-
 
 
   const handleSubmitPlace = async () => {
@@ -1161,26 +1171,24 @@ function App({ onLogout }) {
             )
           }
 
-          <button
-            onClick={
-              personAction === "add"
-                ? handleSubmitPerson
-                : personAction === "delete"
-                  ? handleDeletePerson
-                  : personAction === "update"
-                    ? handleUpdatePerson
-                    : personAction === "payment"
-                      ? handlePersonPayment
-                      : personAction === "age"
-                        ? handleGetPersonAge
-                        : personAction === "sum_of_payments"
-                          ? handleGetPersonSumOfPayments
-                          : () => { }
-            }
-            style={buttonStyle}
-          >
-            Pošalji
-          </button>
+          {!(["residence", "payment_histories", "age", "sum_of_payments"].includes(personAction)) && (
+            <button
+              onClick={
+                personAction === "add"
+                  ? handleSubmitPerson
+                  : personAction === "delete"
+                    ? handleDeletePerson
+                    : personAction === "update"
+                      ? handleUpdatePerson
+                      : personAction === "payment"
+                        ? handlePersonPayment
+                        : () => { }
+              }
+              style={buttonStyle}
+            >
+              Pošalji
+            </button>
+          )}
 
           {personApiError && <div style={{ color: "red", marginTop: "10px" }}>{personApiError}</div>}
           {personApiSuccess && <div style={{ color: "green", marginTop: "10px" }}>{personApiSuccess}</div>}
