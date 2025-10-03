@@ -12,6 +12,7 @@ function Login({ onLogin }) {
   const [attempts, setAttempts] = useState(0);
   const [locked, setLocked] = useState(false);
   const [remainingTime, setRemainingTime] = useState(0);
+  const [showLockoutMessage, setShowLockoutMessage] = useState(false);
 
   const buttonStyle = {
     padding: "10px 20px",
@@ -86,7 +87,11 @@ function Login({ onLogin }) {
     
     setRemainingTime(60);
     
-    alert("Previše neuspelih pokušaja. Sačekajte 1 minut.");
+    setShowLockoutMessage(true);
+    
+    setTimeout(() => {
+      setShowLockoutMessage(false);
+    }, 3000);
     
     const interval = setInterval(() => {
       const currentTimeLeft = lockTime - Date.now();
@@ -144,7 +149,7 @@ function Login({ onLogin }) {
 
       console.log(`Neuspešan pokušaj broj: ${newAttempts}`);
 
-      if (newAttempts > 10) {
+      if (newAttempts >= 10) {
         handleLockout();
       } else {
         setGeneralError(
@@ -175,6 +180,20 @@ function Login({ onLogin }) {
     <div style={{ padding: "60px" }}>
       <h1>Prijavi se</h1>
       <hr />
+
+      {showLockoutMessage && (
+        <div style={{
+          backgroundColor: "#ffcccc",
+          border: "2px solid red",
+          padding: "15px",
+          marginBottom: "20px",
+          borderRadius: "8px",
+          fontWeight: "bold",
+          color: "red"
+        }}>
+          Previše neuspelih pokušaja. Sačekajte 1 minut.
+        </div>
+      )}
 
       {locked && remainingTime > 0 && (
         <div style={{ 
