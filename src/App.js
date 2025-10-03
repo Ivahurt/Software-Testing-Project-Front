@@ -74,6 +74,20 @@ function App({ onLogout }) {
     }
   }, [personData.ageInMonths1, personData.sumOfPayments]);
 
+  useEffect(() => {
+    setResidenceHistory([]);
+    setPersonPayments([]);
+    setSelectedPerson(null);
+    setErrors({});
+    setShowAllPersons(false);
+    setPersonData(defaultPersonData);
+  }, [personAction]);
+
+  useEffect(() => {
+    setShowAllPlaces(false);
+    setErrors({});
+  }, [placeAction]);
+
   const [personList, setPersonList] = useState([]);
   const [placeList, setPlaceList] = useState([]);
   const [userList, setUserList] = useState([]);

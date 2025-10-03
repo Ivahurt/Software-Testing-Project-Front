@@ -11,6 +11,7 @@ function Login({ onLogin }) {
 
   const [attempts, setAttempts] = useState(0);
   const [locked, setLocked] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(0);
 
   const buttonStyle = {
     padding: "10px 20px",
@@ -37,15 +38,70 @@ function Login({ onLogin }) {
 
   useEffect(() => {
     fetchAllUsers();
+    
+    const lockoutTime = localStorage.getItem("lockoutTime");
+    const storedAttempts = localStorage.getItem("loginAttempts");
+    
+    if (storedAttempts) {
+      setAttempts(parseInt(storedAttempts, 10));
+    }
+    
+    if (lockoutTime) {
+      const now = Date.now();
+      const lockTime = parseInt(lockoutTime, 10);
+      const timeLeft = lockTime - now;
+      
+      if (timeLeft > 0) {
+        setLocked(true);
+        setRemainingTime(Math.ceil(timeLeft / 1000));
+        
+        const interval = setInterval(() => {
+          const currentTimeLeft = lockTime - Date.now();
+          
+          if (currentTimeLeft <= 0) {
+            setLocked(false);
+            setAttempts(0);
+            setRemainingTime(0);
+            localStorage.removeItem("lockoutTime");
+            localStorage.removeItem("loginAttempts");
+            clearInterval(interval);
+          } else {
+            setRemainingTime(Math.ceil(currentTimeLeft / 1000));
+          }
+        }, 1000);
+        
+        return () => clearInterval(interval);
+      } else {
+        localStorage.removeItem("lockoutTime");
+        localStorage.removeItem("loginAttempts");
+      }
+    }
   }, []);
 
   const handleLockout = () => {
     setLocked(true);
+    const lockTime = Date.now() + (1 * 60 * 1000);
+    localStorage.setItem("lockoutTime", lockTime.toString());
+    localStorage.setItem("loginAttempts", "10");
+    
+    setRemainingTime(60);
+    
     alert("Previše neuspelih pokušaja. Sačekajte 1 minut.");
-    setTimeout(() => {
-      setAttempts(0);
-      setLocked(false);
-    }, 1 * 60 * 1000);
+    
+    const interval = setInterval(() => {
+      const currentTimeLeft = lockTime - Date.now();
+      
+      if (currentTimeLeft <= 0) {
+        setLocked(false);
+        setAttempts(0);
+        setRemainingTime(0);
+        localStorage.removeItem("lockoutTime");
+        localStorage.removeItem("loginAttempts");
+        clearInterval(interval);
+      } else {
+        setRemainingTime(Math.ceil(currentTimeLeft / 1000));
+      }
+    }, 1000);
   };
 
   const handleSubmit = (e) => {
@@ -84,10 +140,11 @@ function Login({ onLogin }) {
     if (!foundUser) {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
+      localStorage.setItem("loginAttempts", newAttempts.toString());
 
       console.log(`Neuspešan pokušaj broj: ${newAttempts}`);
 
-      if (newAttempts >= 10) {
+      if (newAttempts > 10) {
         handleLockout();
       } else {
         setGeneralError(
@@ -98,6 +155,8 @@ function Login({ onLogin }) {
     }
 
     setAttempts(0);
+    localStorage.removeItem("loginAttempts");
+    localStorage.removeItem("lockoutTime");
 
     if (foundUser.role.toLowerCase() === "administrator") {
       onLogin("admin");
@@ -116,6 +175,17 @@ function Login({ onLogin }) {
     <div style={{ padding: "60px" }}>
       <h1>Prijavi se</h1>
       <hr />
+
+      {locked && remainingTime > 0 && (
+        <div style={{ 
+          color: "red", 
+          fontWeight: "bold", 
+          marginBottom: "20px",
+          fontSize: "18px" 
+        }}>
+          Nalog je zaključan. Preostalo vreme: {remainingTime} sekundi
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <input
